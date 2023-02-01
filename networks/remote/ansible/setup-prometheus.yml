@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  roles:
+    - cloudalchemy.prometheus
+  vars:
+    prometheus_targets:
+      node:
+        - targets:
+            - localhost:26660

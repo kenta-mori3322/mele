@@ -1,0 +1,127 @@
+syntax = "proto3";
+package mele.treasury.v1beta1;
+
+option go_package = "github.com/melechain/mele/x/treasury/types";
+option (gogoproto.equal_all) = true;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/coin.proto";
+
+// Msg defines the distribution Msg service.
+service Msg {
+  rpc AddOperator(MsgAddOperator) returns (MsgAddOperatorResponse);
+
+  rpc RemoveOperator(MsgRemoveOperator) returns (MsgRemoveOperatorResponse);
+
+  rpc Disburse(MsgDisburse) returns (MsgDisburseResponse);
+
+  rpc CancelDisbursement(MsgCancelDisbursement)
+      returns (MsgCancelDisbursementResponse);
+
+  rpc ApproveDisbursement(MsgApproveDisbursement)
+      returns (MsgApproveDisbursementResponse);
+
+  rpc Burn(MsgBurn) returns (MsgBurnResponse);
+
+  rpc CancelBurn(MsgCancelBurn) returns (MsgCancelBurnResponse);
+
+  rpc ApproveBurn(MsgApproveBurn) returns (MsgApproveBurnResponse);
+}
+
+// MsgAddOperator
+message MsgAddOperator {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
+  string operator = 2 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+}
+
+message MsgAddOperatorResponse {}
+
+// MsgRemoveOperator
+message MsgRemoveOperator {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
+  string operator = 2 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+}
+
+message MsgRemoveOperatorResponse {}
+
+// MsgDisburse
+message MsgDisburse {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string operator = 1 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+  string recipient = 2 [ (gogoproto.moretags) = "yaml:\"recipient\"" ];
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string reference = 4 [ (gogoproto.moretags) = "yaml:\"reference\"" ];
+}
+
+message MsgDisburseResponse {}
+
+// MsgCancelDisbursement
+message MsgCancelDisbursement {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string manager = 1 [ (gogoproto.moretags) = "yaml:\"manager\"" ];
+  string recipient = 2 [ (gogoproto.moretags) = "yaml:\"recipient\"" ];
+  string scheduled_for = 3 [ (gogoproto.moretags) = "yaml:\"scheduled_for\"" ];
+}
+
+message MsgCancelDisbursementResponse {}
+
+// MsgApproveDisbursement
+message MsgApproveDisbursement {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string manager = 1 [ (gogoproto.moretags) = "yaml:\"manager\"" ];
+  string recipient = 2 [ (gogoproto.moretags) = "yaml:\"recipient\"" ];
+  string scheduled_for = 3 [ (gogoproto.moretags) = "yaml:\"scheduled_for\"" ];
+}
+
+message MsgApproveDisbursementResponse {}
+
+// MsgBurn
+message MsgBurn {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string operator = 1 [ (gogoproto.moretags) = "yaml:\"operator\"" ];
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgBurnResponse {}
+
+// MsgCancelBurn
+message MsgCancelBurn {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string manager = 1 [ (gogoproto.moretags) = "yaml:\"manager\"" ];
+  string scheduled_for = 2 [ (gogoproto.moretags) = "yaml:\"scheduled_for\"" ];
+}
+
+message MsgCancelBurnResponse {}
+
+// MsgApproveBurn
+message MsgApproveBurn {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string manager = 1 [ (gogoproto.moretags) = "yaml:\"manager\"" ];
+  string scheduled_for = 2 [ (gogoproto.moretags) = "yaml:\"scheduled_for\"" ];
+}
+
+message MsgApproveBurnResponse {}

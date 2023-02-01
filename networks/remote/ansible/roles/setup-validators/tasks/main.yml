@@ -1,0 +1,182 @@
+---
+
+- name: Ensure keys folder exists locally
+  file: path=keys state=directory
+  connection: local
+  run_once: true
+  become: no
+
+- name: Create meled user
+  user: name=meled home=/home/meled shell=/bin/bash
+
+- name: Copy service file
+  copy: src=meled.service dest=/etc/systemd/system/meled.service mode=0755
+  notify: reload systemd
+
+- name: Get node ID
+  command: "cat /etc/nodeid"
+  changed_when: false
+  register: nodeid
+
+- name: Cleanup previous deployment (.meled)
+  file: path=/home/meled/.meled state=absent
+  become: yes
+  become_user: root
+
+- name: Initialize blockchain file system
+  command: "meled init node{{nodeid.stdout_lines[0]}} --chain-id={{TESTNET_NAME}} -o"
+  become: yes
+  become_user: meled
+
+- name: Create upgrade manager genesis structure
+  file: path=/home/meled/.meled/upgrade_manager/genesis/bin state=directory
+  become: yes
+  become_user: meled
+
+- name: Create upgrade manager upgrades structure
+  file: path=/home/meled/.meled/upgrade_manager/upgrades state=directory
+  become: yes
+  become_user: meled
+
+- name: Copy daemon binary to the upgrade manager genesis folder
+  copy:
+    remote_src: yes
+    src: /usr/bin/meled
+    dest: /home/meled/.meled/upgrade_manager/genesis/bin
+    mode: 0755
+
+- name: Create validator key
+  command: "meled keys add validator --keyring-backend test --output json"
+  register: keyadd
+  become: yes
+  become_user: meled
+
+- name: Get wallet word seed from wallet creation output
+  shell: "echo '{{keyadd.stderr}}' | jq '.mnemonic' -r"
+  register: mnemonic_phrase
+  become: no
+  connection: local
+
+- name: Write wallet word seed to local files
+  copy: "content={{mnemonic_phrase.stdout}} dest=keys/node{{nodeid.stdout_lines[0]}}"
+  become: no
+  connection: local
+
+- name: Add genesis account
+  shell: "meled add-genesis-account $(meled keys show validator -a --keyring-backend test) 150000000000000umelg,300000000000000umelc"
+  become: yes
+  become_user: meled
+
+- name: Create account folder
+  file: path=/home/meled/.meled/config/account state=directory
+  become: yes
+  become_user: meled
+
+- name: Extract genesis account info
+  shell: "cat /home/meled/.meled/config/genesis.json | jq '.app_state.auth.accounts[0]' -r > /home/meled/.meled/config/account/account-info-{{nodeid.stdout_lines[0]}}.json"
+  become: yes
+  become_user: meled
+
+- name: Extract genesis account balance
+  shell: "cat /home/meled/.meled/config/genesis.json | jq '.app_state.bank.balances[0]' -r > /home/meled/.meled/config/account/account-balance-{{nodeid.stdout_lines[0]}}.json"
+  become: yes
+  become_user: meled
+
+- name: Gentx validator
+  command: "meled gentx validator 90000000000000umelg --ip={{inventory_hostname}} --keyring-backend test --chain-id {{TESTNET_NAME}}"
+  become: yes
+  become_user: meled
+
+- name: Find gentx file
+  command: "ls /home/meled/.meled/config/gentx"
+  changed_when: false
+  register: gentxfile
+
+- name: Find genesis account file
+  command: "ls /home/meled/.meled/config/account"
+  changed_when: false
+  register: genaccountfile
+
+- name: Clear local files
+  file: path=files/ state=absent
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Get gen-tx file
+  fetch:
+    dest: files/gentx/
+    src: "/home/meled/.meled/config/gentx/{{gentxfile.stdout_lines[0]}}"
+    flat: yes
+
+- name: Get genesis account balance file
+  fetch:
+    dest: files/account/
+    src: "/home/meled/.meled/config/account/{{genaccountfile.stdout_lines[0]}}"
+    flat: yes
+
+- name: Get genesis account info file
+  fetch:
+    dest: files/account/
+    src: "/home/meled/.meled/config/account/{{genaccountfile.stdout_lines[1]}}"
+    flat: yes
+
+- name: Generate temporary local structure
+  command: "meled init local --chain-id={{TESTNET_NAME}} --home files/.meled"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Merge genesis account infos locally
+  shell: "cat files/.meled/config/genesis.json | jq -r --argjson ACCOUNTS \"$(jq -s . files/account/account-info-*)\" '.app_state.auth.accounts = $ACCOUNTS' > files/.meled/config/genesis.json"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Merge genesis account balances locally
+  shell: "cat files/.meled/config/genesis.json | jq -r --argjson ACCOUNTS \"$(jq -s . files/account/account-balance-*)\" '.app_state.bank.balances = $ACCOUNTS' > files/.meled/config/genesis.json"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Add test 1 account
+  shell: "meled add-genesis-account mele1dfjns5lk748pzrd79z4zp9k22mrchm2a5t2f6u 10000000000000umelg,20000000000000umelc --home files/.meled"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Add test 2 account
+  shell: "meled add-genesis-account mele1c7nn5mt43m37t0zmqwh6rslrgcr3gd4pxqutpj 10000000000000umelg,20000000000000umelc --home files/.meled"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Add delegator account
+  shell: "meled add-genesis-account mele1e2k26e6yz3kwysp896mwpf5u5r0nh8zx0yvtsz 10000000000000umelg,20000000000000umelc --home files/.meled"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Collect gentxs locally
+  command: "meled collect-gentxs --gentx-dir files/gentx --home files/.meled"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Fix the genesis file
+  command: "sed -i '' 's/stake/umelg/g' files/.meled/config/genesis.json"
+  connection: local
+  become: no
+  run_once: yes
+
+- name: Ship genesis.json to all nodes
+  copy:
+    src: files/.meled/config/genesis.json
+    dest: /home/meled/.meled/config
+    mode: 0755
+
+- name: Ship config.toml to all nodes
+  copy:
+    src: files/.meled/config/config.toml
+    dest: /home/meled/.meled/config
+    mode: 0755

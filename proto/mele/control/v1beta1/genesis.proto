@@ -1,0 +1,28 @@
+syntax = "proto3";
+package mele.control.v1beta1;
+
+option go_package = "github.com/melechain/mele/x/control/types";
+option (gogoproto.equal_all) = true;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/coin.proto";
+import "mele/control/v1beta1/control.proto";
+
+// GenesisState defines the treasury module's genesis state.
+message GenesisState {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 starting_execution_id = 1
+      [ (gogoproto.moretags) = "yaml:\"starting_execution_id\"" ];
+
+  repeated Execution executions = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"executions\""
+  ];
+
+  Params params = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"params\""
+  ];
+}

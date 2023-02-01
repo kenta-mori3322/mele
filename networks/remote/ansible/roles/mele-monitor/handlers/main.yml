@@ -1,0 +1,5 @@
+---
+
+- name: reload systemd
+  systemd: name=mele-monitor enabled=yes daemon_reload=yes
+

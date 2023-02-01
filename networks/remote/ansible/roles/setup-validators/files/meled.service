@@ -1,0 +1,21 @@
+[Unit]
+Description=meled
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+User=meled
+Group=meled
+Environment=DAEMON_NAME=meled
+Environment=DAEMON_HOME=/home/meled/.meled
+Environment=DAEMON_ALLOW_DOWNLOAD_BINARIES=on
+Environment=DAEMON_RESTART_AFTER_UPGRADE=on
+PermissionsStartOnly=true
+ExecStart=/usr/bin/meled-manager start --pruning="nothing" --rpc.laddr "tcp://0.0.0.0:26657"
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+

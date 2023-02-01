@@ -1,0 +1,81 @@
+version: '3'
+
+services:
+  melednode0:
+    container_name: melednode0
+    image: "mele/core"
+    ports:
+      - "26661-26662:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-meled.log}
+    volumes:
+      - ./build:/meled:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.2
+
+  melednode1:
+    container_name: melednode1
+    image: "mele/core"
+    ports:
+      - "26663-26664:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-meled.log}
+    volumes:
+      - ./build:/meled:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.3
+
+  melednode2:
+    container_name: melednode2
+    image: "mele/core"
+    environment:
+      - ID=2
+      - LOG=${LOG:-meled.log}
+    ports:
+      - "26665-26666:26656-26657"
+    volumes:
+      - ./build:/meled:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.4
+
+  melednode3:
+    container_name: melednode3
+    image: "mele/core"
+    environment:
+      - ID=3
+      - LOG=${LOG:-meled.log}
+    ports:
+      - "26667-26668:26656-26657"
+    volumes:
+      - ./build:/meled:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.5
+
+  melednode4:
+    container_name: melednode4
+    image: "mele/core"
+    ports:
+      - "26669-26670:26656-26657"
+    environment:
+      - ID=4
+      - LOG=${LOG:-meled.log}
+    volumes:
+      - ./build:/meled:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.6
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        -
+          subnet: 192.168.10.0/16

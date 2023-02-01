@@ -1,0 +1,30 @@
+syntax = "proto3";
+package mele.control.v1beta1;
+
+option go_package = "github.com/melechain/mele/x/control/types";
+option (gogoproto.equal_all) = true;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/coin.proto";
+
+// Msg defines the distribution Msg service.
+service Msg {
+  rpc SubmitExecution(MsgSubmitExecution) returns (MsgSubmitExecutionResponse);
+}
+
+message MsgSubmitExecution {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  google.protobuf.Any content = 1
+      [ (cosmos_proto.accepts_interface) = "mele.gov.v1beta1.Content" ];
+  string executor = 2;
+}
+
+message MsgSubmitExecutionResponse {
+  uint64 ExecutionID = 2 [ (gogoproto.moretags) = "yaml:\"execution_id\"" ];
+}

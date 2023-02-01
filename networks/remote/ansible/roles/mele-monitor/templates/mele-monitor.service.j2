@@ -1,0 +1,16 @@
+[Unit]
+Description=mele-monitor
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+User=meled
+Group=meled
+PermissionsStartOnly=true
+ExecStart=/usr/bin/mele-monitor
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

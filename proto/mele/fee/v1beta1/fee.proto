@@ -1,0 +1,69 @@
+syntax = "proto3";
+package mele.fee.v1beta1;
+
+option go_package = "github.com/melechain/mele/x/fee/types";
+option (gogoproto.equal_all) = true;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/coin.proto";
+
+// Params defines the set of params for the fee module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.equal) = false;
+
+  string fee_percentage = 1
+      [ (gogoproto.moretags) = "yaml:\"fee_percentage\"" ];
+  repeated cosmos.base.v1beta1.Coin minimum_fee = 2 [
+    (gogoproto.moretags) = "yaml:\"minimum_fee\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
+  repeated cosmos.base.v1beta1.Coin maximum_fee = 3 [
+    (gogoproto.moretags) = "yaml:\"maximum_fee\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
+  string melg_price = 4 [ (gogoproto.moretags) = "yaml:\"melg_price\"" ];
+  string melg_fee_percentage = 5
+      [ (gogoproto.moretags) = "yaml:\"melg_fee_percentage\"" ];
+}
+
+message AddFeeExcludedMessageProposal {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string title = 1;
+  string description = 2;
+  string message_type = 3;
+}
+
+message AddFeeExcludedMessageProposalWithDeposit {
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = true;
+
+  string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
+  string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+  string message_type = 3 [ (gogoproto.moretags) = "yaml:\"message_type\"" ];
+  string deposit = 4 [ (gogoproto.moretags) = "yaml:\"deposit\"" ];
+}
+message RemoveFeeExcludedMessageProposal {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string title = 1;
+  string description = 2;
+  string message_type = 3;
+}
+
+message RemoveFeeExcludedMessageProposalWithDeposit {
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = true;
+
+  string title = 1 [ (gogoproto.moretags) = "yaml:\"title\"" ];
+  string description = 2 [ (gogoproto.moretags) = "yaml:\"description\"" ];
+  string message_type = 3 [ (gogoproto.moretags) = "yaml:\"message_type\"" ];
+  string deposit = 4 [ (gogoproto.moretags) = "yaml:\"deposit\"" ];
+}

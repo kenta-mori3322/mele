@@ -1,0 +1,13 @@
+---
+
+- name: Copy daemon binary
+  copy:
+    src: "{{DAEMON_BINARY}}"
+    dest: /usr/bin
+    mode: 0755
+
+- name: Copy CLI binary
+  copy:
+    src: "{{CLI_BINARY}}"
+    dest: /usr/bin
+    mode: 0755

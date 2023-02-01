@@ -1,0 +1,16 @@
+[Unit]
+Description=melecli
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+User=meled
+Group=meled
+PermissionsStartOnly=true
+ExecStart=/usr/bin/melecli rest-server --laddr {{MELECLI_ADDRESS}} --trust-node
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

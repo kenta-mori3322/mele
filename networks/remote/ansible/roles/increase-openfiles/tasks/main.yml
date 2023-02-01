@@ -1,0 +1,20 @@
+---
+
+- name: Set sysctl File Limits
+  copy:
+    src: 50-fs.conf
+    dest: /etc/sysctl.d
+
+- name: Set Shell File Limits
+  copy:
+    src: 91-nofiles.conf
+    dest: /etc/security/limits.d
+
+- name: Set mele filehandle Limits
+  copy:
+    src: limits.conf
+    dest: "/lib/systemd/system/{{item}}.service.d"
+  notify: reload systemctl
+  with_items:
+    - meled
+

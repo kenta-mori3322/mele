@@ -1,0 +1,4 @@
+---
+
+- name: reload systemd
+  systemd: name=melecli enabled=yes daemon_reload=yes

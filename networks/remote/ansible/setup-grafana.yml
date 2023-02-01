@@ -1,0 +1,118 @@
+---
+
+- hosts: all
+  vars:
+
+    prometheus_datasource_template:
+      name: "prometheus-{{ item }}"
+      type: prometheus
+      access: proxy
+      url: "http://{{ item }}:9090"
+      basicAuth: false
+
+    influxdb_vcf_datasource_template:
+      name: "influxdb-vcf-{{ item.0 }}"
+      url: "http://{{ item.0 }}:8086"
+      type: influxdb
+      access: proxy
+      database: "vcf"
+      user: "admin"
+      password: "{{ item.1 }}"
+
+    influxdb_telegraf_datasource_template:
+      name: "influxdb-telegraf-{{ item.0 }}"
+      url: "http://{{ item.0 }}:8086"
+      type: influxdb
+      access: proxy
+      database: "telegraf"
+      user: "admin"
+      password: "{{ item.1 }}"
+
+    grafana_security:
+      admin_user: admin
+      admin_password: "{{ grafana_password }}"
+
+    grafana_dashboards_dir: "dashboards"
+
+  pre_tasks:
+    - name: Fetch ip addresses
+      shell: "cat ../terraform-aws/terraform.tfstate.d/{{CLUSTER_NAME}}/terraform.tfstate | jq .outputs.public_ips.value | jq 'flatten'"
+      register: public_ips_json
+      connection: local
+      become: no
+      run_once: yes
+
+    - name: Parse ip addresses
+      set_fact:
+        public_ips: "{{ public_ips_json.stdout | from_json }}"
+      connection: local
+      become: no
+      run_once: yes
+
+    - name: Fetch influxdb passwords
+      shell: "cat ../terraform-aws/terraform.tfstate.d/{{CLUSTER_NAME}}/terraform.tfstate | jq .outputs.influx_db_passwords.value | jq 'flatten'"
+      register: influxdb_passwords_json
+      connection: local
+      become: no
+      run_once: yes
+
+    - name: Parse influxdb passwords
+      set_fact:
+        influxdb_passwords: "{{ influxdb_passwords_json.stdout | from_json }}"
+      connection: local
+      become: no
+      run_once: yes
+
+#    - name: Print all ips
+#      debug:
+#        msg: "{{ item }}"
+#      with_items:
+#        - "{{ public_ips }}"
+#      connection: local
+#      become: no
+#      run_once: yes
+#
+#    - name: Print all passwords
+#      debug:
+#        msg: "{{ item }}"
+#      with_items:
+#        - "{{ influxdb_passwords }}"
+#      connection: local
+#      become: no
+#      run_once: yes
+
+    - name: Construct prometheus list
+      set_fact:
+        grafana_datasources: "{{ (grafana_datasources | default([])) + [prometheus_datasource_template] }}"
+      with_items:
+        - "{{ public_ips }}"
+#    - debug:
+#        msg: "{{ grafana_datasources }}"
+
+    - name: Construct influx vcf list
+      set_fact:
+        grafana_datasources: "{{ (grafana_datasources | default([])) + [influxdb_vcf_datasource_template] }}"
+      loop: "{{ public_ips|zip(influxdb_passwords)|list }}"
+#    - debug:
+#        msg: "{{ grafana_datasources }}"
+
+    - name: Construct influx telegraf list
+      set_fact:
+        grafana_datasources: "{{ (grafana_datasources | default([])) + [influxdb_telegraf_datasource_template] }}"
+      loop: "{{ public_ips|zip(influxdb_passwords)|list }}"
+#    - debug:
+#        msg: "{{ grafana_datasources }}"
+
+    - name: Generate grafana password
+      set_fact:
+        grafana_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
+
+    - name: Print Grafana password
+      debug:
+        msg: "{{ grafana_password }}"
+      connection: local
+      become: no
+      run_once: yes
+
+  roles:
+    - cloudalchemy.grafana

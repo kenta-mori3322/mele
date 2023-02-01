@@ -1,0 +1,28 @@
+syntax = "proto3";
+package mele.control.v1beta1;
+
+option go_package = "github.com/melechain/mele/x/control/types";
+option (gogoproto.equal_all) = true;
+option (gogoproto.goproto_getters_all) = false;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+
+// Params defines the set of params for the control module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.equal) = false;
+
+  bool enabled = 1 [ (gogoproto.moretags) = "yaml:\"enabled\"" ];
+  repeated string managers = 2 [ (gogoproto.moretags) = "yaml:\"managers\"" ];
+}
+
+message Execution {
+  google.protobuf.Any content = 1
+      [ (cosmos_proto.accepts_interface) = "mele.gov.v1beta1.Content" ];
+  uint64 id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+  string submit_time = 3 [ (gogoproto.moretags) = "yaml:\"submit_time\"" ];
+  string executor = 4 [ (gogoproto.moretags) = "yaml:\"executor\"" ];
+}

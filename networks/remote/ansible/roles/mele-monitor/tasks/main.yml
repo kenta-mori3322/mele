@@ -1,0 +1,54 @@
+---
+
+- name: Get valoper address
+  shell: "meled debug addr $(meled keys show validator -a --keyring-backend test) 2>&1 | grep 'Bech32 Val' | cut -c 13-"
+  register: validator_address
+  become: yes
+  become_user: meled
+
+- name: Update validator address
+  shell: "sed -i 's#<melevaloper>#{{validator_address.stdout}}#g' /etc/mele-monitor/config.toml"
+  become: yes
+  become_user: root
+
+- name: Get account address
+  shell: "meled keys show validator -a --keyring-backend test 2>&1"
+  register: account_address
+  become: yes
+  become_user: meled
+
+- name: Set account address
+  shell: "sed -i 's#<mele>#{{account_address.stdout}}#g' /etc/mele-monitor/config.toml"
+  become: yes
+  become_user: root
+
+- name: Get validator hex address
+  shell: "cat ~/.meled/config/priv_validator_key.json | jq .address -r"
+  register: hex_address
+  become: yes
+  become_user: meled
+
+- name: Set validator hex address
+  shell: "sed -i 's#<hex>#{{hex_address.stdout}}#g' /etc/mele-monitor/config.toml"
+  become: yes
+  become_user: root
+
+- name: Get influx password
+  shell: "cat /etc/influx_password"
+  register: influx_password
+  become: yes
+  become_user: meled
+
+- name: Update influx password
+  shell: "sed -i 's#<password>#{{influx_password.stdout}}#g' /etc/mele-monitor/config.toml"
+  become: yes
+  become_user: root
+
+- name: Copy service
+  template:
+    src: mele-monitor.service.j2
+    dest: /etc/systemd/system/mele-monitor.service
+  notify: reload systemd
+
+- name: Start service
+  service: name=mele-monitor state=started
